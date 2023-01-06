@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:photos_app/full_screen_image.dart';
@@ -73,38 +71,39 @@ class _HomeScreenState extends State<HomeScreen> {
             return Padding(
               padding: const EdgeInsets.all(20),
               child: GridView.builder(
-                  itemCount: images.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      mainAxisSpacing: 10.0,
-                      crossAxisCount: 2,
-                      //childAspectRatio: 2 / 3,
-                      crossAxisSpacing: 10.0),
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FullScreenImage(
-                              imageUrl: images[index]['src']['large2x'],
-                            ),
+                itemCount: images.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    mainAxisSpacing: 10.0,
+                    crossAxisCount: 2,
+                    //childAspectRatio: 2 / 3,
+                    crossAxisSpacing: 10.0),
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullScreenImage(
+                            imageUrl: images[index]['src']['large2x'],
                           ),
-                        );
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          image: DecorationImage(
-                              image: NetworkImage(
-                                images[index]['src']['tiny'],
-                              ),
-                              fit: BoxFit.cover),
                         ),
+                      );
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                            image: NetworkImage(
+                              images[index]['src']['tiny'],
+                            ),
+                            fit: BoxFit.cover),
                       ),
-                    );
-                  }),
+                    ),
+                  );
+                },
+              ),
             );
           }
         },
