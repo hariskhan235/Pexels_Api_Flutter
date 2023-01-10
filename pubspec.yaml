@@ -42,6 +42,16 @@ dependencies:
   flutter_wallpaper_manager: ^0.0.3
   flutter_cache_manager: ^3.3.0
   wallpaper: ^1.1.0
+  path_provider: ^2.0.11
+  path: ^1.8.2
+  sqflite: ^2.2.2
+  uuid: ^3.0.7
+  cached_network_image: ^3.2.3
+  flutter_slidable: ^2.0.0
+  sqlbrite: ^2.5.0
+  synchronized: ^3.0.0+3
+  logging: ^1.1.0
+  provider: ^6.0.5
 
 
 dev_dependencies:

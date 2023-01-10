@@ -1,24 +1,61 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+import 'package:photos_app/data/memory_repository.dart';
+import 'package:photos_app/data/repository.dart';
+import 'package:photos_app/favorite_photos.dart';
 import 'package:photos_app/full_screen_image.dart';
+import 'package:photos_app/services/pexels_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  _setupLogging();
+  WidgetsFlutterBinding.ensureInitialized();
+  final repository = MemoryRepository();
+  await repository.init();
+  runApp(
+    MyApp(
+      repository: repository,
+    ),
+  );
+}
+
+void _setupLogging() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(
+    (rec) {
+      log(
+        int.parse('${rec.level.name}: ${rec.time}: ${rec.message}'),
+      );
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Repository repository;
+
+  const MyApp({super.key, required this.repository});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        Provider(
+          lazy: false,
+          create: (_) => repository,
+          dispose: (_, Repository repository) => repository.close(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const HomeScreen(),
       ),
-      home: const HomeScreen(),
     );
   }
 }
@@ -31,7 +68,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List images = [];
+  List<dynamic> images = [];
 
   Future fetchPhotos() async {
     try {
@@ -55,14 +92,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    PixelsApiService pixelsApiService = PixelsApiService();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Photos'),
-        centerTitle: true,
+        title: const Text(
+          'Photos',
+          style: TextStyle(color: Colors.white),
+        ),
+        //centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FavoritePhotosScreen(),
+                ),
+              );
+            },
+            child: const Text(
+              'Go To Favorites',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: fetchPhotos(),
         builder: (context, snapshot) {
+          // final PhotoModel images = snapshot.data ?? [];
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -78,13 +135,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     //childAspectRatio: 2 / 3,
                     crossAxisSpacing: 10.0),
                 itemBuilder: (context, index) {
+                  //final photoModel = snapshot.data[index];
                   return GestureDetector(
                     onTap: () {
+                      //print(images[index]);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => FullScreenImage(
-                            imageUrl: images[index]['src']['large2x'],
+                            title: images[index]['alt'],
+                            image: images[index]['src']['large2x'],
                           ),
                         ),
                       );
@@ -99,6 +159,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               images[index]['src']['tiny'],
                             ),
                             fit: BoxFit.cover),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            bottom: 20,
+                            left: 20,
+                            right: 20,
+                            child: SizedBox(
+                              width: 50,
+                              child: Text(
+                                images[index]['alt'],
+                                maxLines: 3,
+                                style: const TextStyle(color: Colors.amber),
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                     ),
                   );

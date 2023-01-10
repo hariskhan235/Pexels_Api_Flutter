@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:photos_app/data/repository.dart';
+import 'package:photos_app/databse/photo_db.dart';
+import 'package:photos_app/models/photo_model.dart';
+import 'package:provider/provider.dart';
 import 'package:wallpaper/wallpaper.dart';
 
 class FullScreenImage extends StatefulWidget {
-  final String imageUrl;
+  //final PhotoModel photoModel;
+  final String title;
+  final String image;
 
-  const FullScreenImage({Key? key, required this.imageUrl}) : super(key: key);
+  const FullScreenImage({Key? key, required this.title,required this.image}) : super(key: key);
 
   @override
   State<FullScreenImage> createState() => _FullScreenImageState();
 }
 
 class _FullScreenImageState extends State<FullScreenImage> {
+  DBHelper? dbHelper;
+  late List<PhotoModel> photosList;
+
   String home = "Home Screen",
       lock = 'Lock Screen',
       both = 'Both',
@@ -27,7 +36,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
   setWallpaper() async {
     try {
       await Wallpaper.homeScreen(
-          imageName: widget.imageUrl,
+          imageName: widget.image ?? '',
           options: RequestSizeOptions.RESIZE_FIT,
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height);
@@ -38,23 +47,30 @@ class _FullScreenImageState extends State<FullScreenImage> {
   }
 
   saveImage() async {
-    GallerySaver.saveImage(widget.imageUrl, albumName: 'MyPhotoAppMedia')
+    GallerySaver.saveImage(widget.image ?? '',
+            albumName: 'MyPhotoAppMedia')
         .then((value) {
       if (value == true) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Image Saved')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image Saved'),
+          ),
+        );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Image Saved Error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image Saved Error'),
+          ),
+        );
       }
     });
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    image = widget.imageUrl;
+    image = widget.image;
+    dbHelper = DBHelper();
   }
 
   Future<void> downloadImage(BuildContext context) async {
@@ -78,6 +94,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
 
   @override
   Widget build(BuildContext context) {
+    final repository = Provider.of<Repository>(context);
     GlobalKey scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
       key: scaffoldKey,
@@ -87,7 +104,9 @@ class _FullScreenImageState extends State<FullScreenImage> {
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
           image: DecorationImage(
-              image: NetworkImage(widget.imageUrl), fit: BoxFit.cover),
+              image: NetworkImage(
+                  widget.image ?? ''),
+              fit: BoxFit.cover),
         ),
         child: Stack(
           children: [
@@ -109,26 +128,47 @@ class _FullScreenImageState extends State<FullScreenImage> {
                 ),
               ),
             ),
-            // Positioned(
-            //   top: MediaQuery.of(context).size.height * 0.010,
-            //   child: Image(
-            //     width: MediaQuery.of(context).size.width,
-            //     height: MediaQuery.of(context).size.height * 0.5,
-            //     image: NetworkImage(widget.imageUrl),
-            //     loadingBuilder:
-            //         (context, child, ImageChunkEvent? loadingProgress) {
-            //       if (loadingProgress == null) return child;
-            //       return Center(
-            //         child: CircularProgressIndicator(
-            //           value: loadingProgress.expectedTotalBytes != null
-            //               ? loadingProgress.cumulativeBytesLoaded /
-            //                   loadingProgress.expectedTotalBytes!
-            //               : null,
-            //         ),
-            //       );
-            //     },
-            //   ),
-            // ),
+            Positioned(
+              //alignment: Alignment.topCenter,
+              top: 30,
+              left: 50,
+              right: 50,
+              child: IconButton(
+                onPressed: () async {
+                  //var id = const Uuid().v1();
+                  //String id = DateTime.now().toIso8601String();
+                  // var photoModel =
+                  //     PhotoModel(title: 'title', image: widget.imageUrl,id:1);
+                  // dbHelper!.addToFavorites(photoModel).then((value) {
+                  //   print('Data Added Successfully');
+                  //   print(value.image);
+                  //   print(value.image.runtimeType);
+                  //   setState(() {
+                  //     //photosList.
+                  //     photosList?.add(photoModel);
+                  //     //photosList.add()
+                  //     //print(value.toMap());
+                  //   });
+                  // });
+                  var photoModel = PhotoModel(title: widget.title, image: widget.image);
+                  // repository
+                  //     .addToFavorites(photoModel);
+                  dbHelper?.insert(photoModel).then((value) {
+                    print('Data added Successfully');
+                    setState(() {
+                      // dbHelper!.getAllPhotos();
+                      //photosList.add(value);
+                    });
+                  });
+
+                  Navigator.of(context).pop();
+                },
+                icon: const Icon(
+                  Icons.favorite,
+                  color: Colors.black,
+                ),
+              ),
+            ),
             Positioned(
               top: MediaQuery.of(context).size.height * 0.05,
               right: MediaQuery.of(context).size.width * 0.05,
