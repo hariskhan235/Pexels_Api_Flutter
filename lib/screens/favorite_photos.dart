@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:photos_app/data/repository.dart';
-import 'databse/photo_db.dart';
-import 'models/photo_model.dart';
+import '../databse/photo_db.dart';
+import '../models/photo_model.dart';
 
 class FavoritePhotosScreen extends StatefulWidget {
   const FavoritePhotosScreen({Key? key}) : super(key: key);
